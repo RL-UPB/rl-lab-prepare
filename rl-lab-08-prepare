@@ -174,6 +174,20 @@ echo "ana:student" | chpasswd
 /bin/dd if=/dev/urandom of=/var/lib/lxc/blue/rootfs/home/corina/blue-file-10M.dat bs=1M count=10 > /dev/null 2>&1
 /usr/bin/ssh -o StrictHostKeyChecking=no -l root blue "/bin/chown corina:corina ~corina/blue-file-10M.dat"
 
+# Create folders in `student@host' and `corina@blue'.
+rm -fr /home/student/assignment
+/bin/mkdir /home/student/assignment
+echo "x - 1 = 0" > /home/student/assignment/linear.txt
+echo "x^2 - 3x + 2 = 0" > /home/student/assignment/quadratic.txt
+echo "x^3 - 6x^2 + 11x -6 = 0" > /home/student/assignment/cubic.txt
+/bin/chown -R student:student /home/student/assignment
+rm -fr /var/lib/lxc/blue/rootfs/home/corina/solution
+/bin/mkdir /var/lib/lxc/blue/rootfs/home/corina/solution
+echo "x = 1" > /var/lib/lxc/blue/rootfs/home/corina/solution/linear.txt
+echo "x1 = 1, x2 = 2" > /var/lib/lxc/blue/rootfs/home/corina/solution/quadratic.txt
+echo "x1 = 1, x2 = 2, x3 = 3" > /var/lib/lxc/blue/rootfs/home/corina/solution/cubic.txt
+/usr/bin/ssh -o StrictHostKeyChecking=no -l root blue "/bin/chown -R corina:corina ~corina/solution"
+
 # Enable Internet connectivity for containers.
 /sbin/sysctl -q -w net.ipv4.ip_forward=1
 /sbin/iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
