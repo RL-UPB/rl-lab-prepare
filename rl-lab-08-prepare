@@ -4,7 +4,7 @@
 /usr/bin/lxc-stop -n green
 /usr/bin/lxc-stop -n blue
 
-sleep 2
+sleep 3
 
 /bin/cat > /var/lib/lxc/red/rootfs/etc/network/interfaces <<END
 # This file describes the network interfaces available on your system
@@ -112,6 +112,8 @@ END
 /usr/bin/lxc-start -n red -d
 /usr/bin/lxc-start -n green -d
 /usr/bin/lxc-start -n blue -d
+
+sleep 3
 
 /sbin/ip a f dev veth-red
 /sbin/ip a a 192.168.1.1/24 dev veth-red
