@@ -142,6 +142,28 @@ ff02::1 ip6-allnodes
 ff02::2 ip6-allrouter
 END
 
-/sbin/sysctl -w net.ipv4.ip_forward=1
+# Create user `ana' using password `student' and configure authentication from
+# `student@red'.
+/usr/sbin/userdel -r ana
+/usr/sbin/useradd -m -d /home/ana -s /bin/bash -l ana
+echo "ana:student" | chpasswd
+/bin/mkdir -p /home/ana/.ssh
+/bin/cp /var/lib/lxc/red/rootfs/home/student/.ssh/id_rsa.pub /home/ana/.ssh/authorized_keys
+/bin/chown -R ana:ana /home/ana/.ssh/
+/bin/chmod 777 /home/ana/.ssh/
 
+# Create user `bogdan' on `blue' using password `student' and create SSH key
+# pair.
+/usr/bin/ssh -o StrictHostKeyChecking=no -l root blue "/usr/sbin/userdel -r bogdan"
+/usr/bin/ssh -o StrictHostKeyChecking=no -l root blue "/usr/sbin/useradd -m -d /home/bogdan -s /bin/bash -l bogdan"
+/usr/bin/ssh -o StrictHostKeyChecking=no -l root blue "echo 'bogdan:student' | /usr/sbin/chpasswd"
+/usr/bin/ssh -o StrictHostKeyChecking=no -l root blue "/bin/su - bogdan -c '/bin/mkdir ~/.ssh; /usr/bin/ssh-keygen -q -t rsa -N "'""'" -f ~/.ssh/id_rsa'"
+
+# Create user `corina' on `blue' using password `student'.
+/usr/bin/ssh -o StrictHostKeyChecking=no -l root blue "/usr/sbin/userdel -r corina"
+/usr/bin/ssh -o StrictHostKeyChecking=no -l root blue "/usr/sbin/useradd -m -d /home/corina -s /bin/bash -l corina"
+/usr/bin/ssh -o StrictHostKeyChecking=no -l root blue "echo 'corina:student' | /usr/sbin/chpasswd"
+
+# Enable Internet connectivity for containers.
+/sbin/sysctl -q -w net.ipv4.ip_forward=1
 /sbin/iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
