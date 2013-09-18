@@ -132,7 +132,7 @@ cat > /etc/hosts <<END
 127.0.1.1   host
 192.168.1.2 red
 192.168.2.2 green
-192.168.2.2 blue
+192.168.3.2 blue
 
 # The following lines are desirable for IPv6 capable hosts
 ::1     ip6-localhost ip6-loopback
