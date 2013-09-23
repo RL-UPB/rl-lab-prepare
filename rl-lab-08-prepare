@@ -164,6 +164,10 @@ echo "ana:student" | chpasswd
 /usr/bin/ssh -o StrictHostKeyChecking=no -l root blue "/usr/sbin/useradd -m -d /home/corina -s /bin/bash -l corina"
 /usr/bin/ssh -o StrictHostKeyChecking=no -l root blue "echo 'corina:student' | /usr/sbin/chpasswd"
 
+# Create large file in `student@green'.
+/bin/dd if=/dev/urandom of=/var/lib/lxc/green/rootfs/home/student/file-100M.dat bs=1M count=100 > /dev/null 2>&1
+/usr/bin/ssh -o StrictHostKeyChecking=no -l root green "/bin/chown student:student ~student/file-100M.dat"
+
 # Enable Internet connectivity for containers.
 /sbin/sysctl -q -w net.ipv4.ip_forward=1
 /sbin/iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
