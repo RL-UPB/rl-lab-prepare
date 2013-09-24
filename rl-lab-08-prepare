@@ -113,7 +113,7 @@ END
 /usr/bin/lxc-start -n green -d
 /usr/bin/lxc-start -n blue -d
 
-sleep 3
+sleep 5
 
 /sbin/ip a f dev veth-red
 /sbin/ip a a 192.168.1.1/24 dev veth-red
