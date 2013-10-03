@@ -188,6 +188,15 @@ echo "x1 = 1, x2 = 2" > /var/lib/lxc/blue/rootfs/home/corina/solution/quadratic.
 echo "x1 = 1, x2 = 2, x3 = 3" > /var/lib/lxc/blue/rootfs/home/corina/solution/cubic.txt
 /usr/bin/ssh -o StrictHostKeyChecking=no -l root blue "/bin/chown -R corina:corina ~corina/solution"
 
+# Add SSH alias for `student@host'.
+/bin/mkdir /home/student/.ssh > /dev/null 2>&1
+/bin/cat > /home/student/.ssh/config <<END
+Host r
+	User student
+	HostName red
+END
+/bin/chown -R student:student /home/student/.ssh
+
 # Enable Internet connectivity for containers.
 /sbin/sysctl -q -w net.ipv4.ip_forward=1
 /sbin/iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
