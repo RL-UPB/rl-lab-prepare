@@ -19,12 +19,13 @@ ip link set dev eth0 down
 exit 0
 EOF
 
+
+/usr/bin/lxc-start -n red -d
+/usr/bin/lxc-start -n green -d
+/usr/bin/lxc-start -n blue -d
+
 ip link set dev veth-red down
 ip link set dev veth-green down
 ip link set dev veth-blue down
-
-/usr/bin/lxc-start -n red
-/usr/bin/lxc-start -n green
-/usr/bin/lxc-start -n blue
 
 sleep 3
