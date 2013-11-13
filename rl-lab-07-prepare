@@ -1,24 +1,88 @@
 #!/bin/bash
 
+prepare_task_6()
+{
+	/usr/bin/lxc-stop -n red
+	/bin/cat > /var/lib/lxc/red/rootfs/etc/network/interfaces <<EOF
+# This file describes the network interfaces available on your system
+# and how to activate them. For more information, see interfaces(5).
+
+# The loopback network interface
+auto lo
+iface lo inet loopback
+
+auto eth0
+iface eth0 inet static
+	address 7.7.7.2
+	netmask 255.255.255.255
+EOF
+	/bin/cat > /var/lib/lxc/red/rootfs/etc/rc.local <<EOF
+exit 0
+EOF
+	sleep 3
+	/usr/bin/lxc-start -n red -d
+	sleep 3
+
+	/sbin/ip address flush dev veth-red
+	/sbin/ip address add 7.7.7.1 dev veth-red
+	/sbin/ip link set dev veth-red up
+}
+
+prepare_task_9()
+{
+	/usr/bin/lxc-stop -n blue
+	/bin/cat > /var/lib/lxc/blue/rootfs/etc/network/interfaces <<EOF
+# This file describes the network interfaces available on your system
+# and how to activate them. For more information, see interfaces(5).
+
+# The loopback network interface
+auto lo
+iface lo inet loopback
+
+auto eth0
+iface eth0 inet static
+	address 15.15.15.2
+	netmask 255.255.255.0
+EOF
+	sleep 3
+	/usr/bin/lxc-start -n blue -d
+	sleep 3
+
+	/sbin/ip address flush dev veth-blue
+	/sbin/ip address add 15.15.15.1/24 dev veth-blue
+	/sbin/ip link set dev veth-blue up
+}
+
+if test $# -eq 1; then
+	if test $1 -eq 6; then
+		prepare_task_6
+	fi
+	if test $1 -eq 9; then
+		prepare_task_9
+	fi
+	exit 0
+fi
+
 /usr/bin/lxc-stop -n red
 /usr/bin/lxc-stop -n green
 /usr/bin/lxc-stop -n blue
 
+sleep 3
+
 /bin/cat > /var/lib/lxc/red/rootfs/etc/rc.local <<EOF
-ip link set dev eth0 down
+/sbin/ip link set dev eth0 down
 exit 0
 EOF
 
 /bin/cat > /var/lib/lxc/green/rootfs/etc/rc.local <<EOF
-ip link set dev eth0 down
+/sbin/ip link set dev eth0 down
 exit 0
 EOF
 
 /bin/cat > /var/lib/lxc/blue/rootfs/etc/rc.local <<EOF
-ip link set dev eth0 down
+/sbin/ip link set dev eth0 down
 exit 0
 EOF
-
 
 /usr/bin/lxc-start -n red -d
 /usr/bin/lxc-start -n green -d
@@ -29,4 +93,3 @@ sleep 3
 ip link set dev veth-red down
 ip link set dev veth-green down
 ip link set dev veth-blue down
-
