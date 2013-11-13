@@ -24,8 +24,9 @@ EOF
 /usr/bin/lxc-start -n green -d
 /usr/bin/lxc-start -n blue -d
 
+sleep 3
+
 ip link set dev veth-red down
 ip link set dev veth-green down
 ip link set dev veth-blue down
 
-sleep 3
