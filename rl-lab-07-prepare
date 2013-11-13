@@ -4,6 +4,27 @@
 /usr/bin/lxc-stop -n green
 /usr/bin/lxc-stop -n blue
 
+/bin/cat > /var/lib/lxc/red/rootfs/etc/rc.local <<EOF
+ip link set dev eth0 down
+exit 0
+EOF
+
+/bin/cat > /var/lib/lxc/green/rootfs/etc/rc.local <<EOF
+ip link set dev eth0 down
+exit 0
+EOF
+
+/bin/cat > /var/lib/lxc/blue/rootfs/etc/rc.local <<EOF
+ip link set dev eth0 down
+exit 0
+EOF
+
+ip link set dev veth-red down
+ip link set dev veth-green down
+ip link set dev veth-blue down
+
+/usr/bin/lxc-start -n red
+/usr/bin/lxc-start -n green
+/usr/bin/lxc-start -n blue
+
 sleep 3
-
-
