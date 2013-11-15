@@ -53,12 +53,38 @@ EOF
 	/sbin/ip link set dev veth-blue up
 }
 
+prepare_task_10()
+{
+	/usr/bin/lxc-stop -n red
+	/usr/bin/lxc-stop -n green
+	/usr/bin/lxc-stop -n blue
+	sleep 3
+
+	/bin/cat > /var/lib/lxc/red/rootfs/etc/rc.local <<EOF
+exit 0
+EOF
+	/bin/cat > /var/lib/lxc/green/rootfs/etc/rc.local <<EOF
+exit 0
+EOF
+	/bin/cat > /var/lib/lxc/blue/rootfs/etc/rc.local <<EOF
+exit 0
+EOF
+
+	/usr/bin/lxc-start -n red -d
+	/usr/bin/lxc-start -n green -d
+	/usr/bin/lxc-start -n blue -d
+	sleep 3
+}
+
 if test $# -eq 1; then
 	if test $1 -eq 6; then
 		prepare_task_6
 	fi
 	if test $1 -eq 9; then
 		prepare_task_9
+	fi
+	if test $1 -eq 10; then
+		prepare_task_10
 	fi
 	exit 0
 fi
