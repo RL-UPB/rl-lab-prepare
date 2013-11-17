@@ -1,0 +1,149 @@
+#!/bin/bash
+
+/usr/bin/lxc-stop -n red
+/usr/bin/lxc-stop -n green
+/usr/bin/lxc-stop -n blue
+
+sleep 3
+
+/bin/cat > /var/lib/lxc/red/rootfs/etc/network/interfaces <<END
+# This file describes the network interfaces available on your system
+# and how to activate them. For more information, see interfaces(5).
+
+# The loopback network interface
+auto lo
+iface lo inet loopback
+
+auto eth0
+iface eth0 inet static
+	address 192.168.1.2
+	netmask 255.255.255.0
+	broadcast 192.168.1.255
+	network 192.168.1.0
+	gateway 192.168.1.1
+	dns-nameservers 8.8.8.8
+END
+
+/bin/cat > /var/lib/lxc/green/rootfs/etc/network/interfaces <<END
+# This file describes the network interfaces available on your system
+# and how to activate them. For more information, see interfaces(5).
+
+# The loopback network interface
+auto lo
+iface lo inet loopback
+
+auto eth0
+iface eth0 inet static
+	address 192.168.2.2
+	netmask 255.255.255.0
+	broadcast 192.168.2.255
+	network 192.168.2.0
+	gateway 192.168.2.1
+	dns-nameservers 8.8.8.8
+END
+
+/bin/cat > /var/lib/lxc/blue/rootfs/etc/network/interfaces <<END
+# This file describes the network interfaces available on your system
+# and how to activate them. For more information, see interfaces(5).
+
+# The loopback network interface
+auto lo
+iface lo inet loopback
+
+auto eth0
+iface eth0 inet static
+	address 192.168.3.2
+	netmask 255.255.255.0
+	broadcast 192.168.3.255
+	network 192.168.3.0
+	gateway 192.168.3.1
+	dns-nameservers 8.8.8.8
+END
+
+echo "nameserver 8.8.8.8" > /var/lib/lxc/red/rootfs/etc/resolv.conf
+echo "nameserver 8.8.8.8" > /var/lib/lxc/green/rootfs/etc/resolv.conf
+echo "nameserver 8.8.8.8" > /var/lib/lxc/blue/rootfs/etc/resolv.conf
+
+/bin/cat > /var/lib/lxc/red/rootfs/etc/hosts <<END
+127.0.0.1   localhost
+192.168.1.2 red
+192.168.2.2 green
+192.168.3.2 blue
+192.168.1.1 host
+
+# The following lines are desirable for IPv6 capable hosts
+::1     ip6-localhost ip6-loopback
+fe00::0 ip6-localnet
+ff00::0 ip6-mcastprefix
+ff02::1 ip6-allnodes
+ff02::2 ip6-allrouters
+END
+
+/bin/cat > /var/lib/lxc/green/rootfs/etc/hosts <<END
+127.0.0.1   localhost
+192.168.1.2 red
+192.168.2.2 green
+192.168.3.2 blue
+192.168.2.1 host
+
+# The following lines are desirable for IPv6 capable hosts
+::1     ip6-localhost ip6-loopback
+fe00::0 ip6-localnet
+ff00::0 ip6-mcastprefix
+ff02::1 ip6-allnodes
+ff02::2 ip6-allrouters
+END
+
+/bin/cat > /var/lib/lxc/blue/rootfs/etc/hosts <<END
+127.0.0.1   localhost
+192.168.1.2 red
+192.168.2.2 green
+192.168.3.2 blue
+192.168.3.1 host
+
+# The following lines are desirable for IPv6 capable hosts
+::1     ip6-localhost ip6-loopback
+fe00::0 ip6-localnet
+ff00::0 ip6-mcastprefix
+ff02::1 ip6-allnodes
+ff02::2 ip6-allrouters
+END
+
+/usr/bin/lxc-start -n red -d
+/usr/bin/lxc-start -n green -d
+/usr/bin/lxc-start -n blue -d
+
+sleep 5
+
+/sbin/ip a f dev veth-red
+/sbin/ip a a 192.168.1.1/24 dev veth-red
+/sbin/ip l s dev veth-red up
+
+/sbin/ip a f dev veth-green
+/sbin/ip a a 192.168.2.1/24 dev veth-green
+/sbin/ip l s dev veth-green up
+
+/sbin/ip a f dev veth-blue
+/sbin/ip a a 192.168.3.1/24 dev veth-blue
+/sbin/ip l s dev veth-blue up
+
+/bin/cat > /etc/hosts <<END
+127.0.0.1   localhost
+127.0.1.1   host
+192.168.1.2 red
+192.168.2.2 green
+192.168.3.2 blue
+
+# The following lines are desirable for IPv6 capable hosts
+::1     ip6-localhost ip6-loopback
+fe00::0 ip6-localnet
+ff00::0 ip6-mcastprefix
+ff02::1 ip6-allnodes
+ff02::2 ip6-allrouter
+END
+
+# Create user `corina' on `blue' using password `student'.
+#/usr/bin/ssh -o StrictHostKeyChecking=no -l root blue "/usr/sbin/userdel -r corina"
+#/usr/bin/ssh -o StrictHostKeyChecking=no -l root blue "/usr/sbin/useradd -m -d /home/corina -s /bin/bash -l corina"
+#/usr/bin/ssh -o StrictHostKeyChecking=no -l root blue "echo 'corina:student' | /usr/sbin/chpasswd"
+
