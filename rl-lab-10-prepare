@@ -145,4 +145,9 @@ END
 /sbin/iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
 echo 1 > /proc/sys/net/ipv4/ip_forward
 
+#install APACHE2 on red
 
+ssh root@red apt-get -y install apache2 > /dev/null
+ssh root@red a2enmod ssl > /dev/null
+ssh root@red a2ensite default-ssl > /dev/null
+ssh root@ red dd if=/dev/zero of=/var/lib/lxc/red/rootfs/var/www/fisier.out bs=1K count=1
