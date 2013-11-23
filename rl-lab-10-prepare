@@ -150,5 +150,5 @@ echo 1 > /proc/sys/net/ipv4/ip_forward
 /usr/bin/ssh -o StrictHostKeyChecking=no -l root red "a2enmod ssl > /dev/null"
 /usr/bin/ssh -o StrictHostKeyChecking=no -l root red "a2ensite default-ssl > /dev/null"
 /usr/bin/ssh -o StrictHostKeyChecking=no -l root red "echo '<h1>Laborator 10 - pe red</h1>' > /var/www/index.html"
-dd if=/dev/zero of=/var/lib/lxc/red/rootfs/var/www/fisier.out bs=1K count=1 > /dev/null
+dd if=/dev/zero of=/var/lib/lxc/red/rootfs/var/www/fisier.out bs=1K count=1 &> /dev/null
 
