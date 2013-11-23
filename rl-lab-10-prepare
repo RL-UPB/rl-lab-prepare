@@ -168,5 +168,14 @@ echo "folder/2/A/B/C" > /var/lib/lxc/red/rootfs/var/www/folder/2/A/B/C/index.htm
 echo "folder/3/A/B/C" > /var/lib/lxc/red/rootfs/var/www/folder/3/A/B/C/index.html
 echo "folder/4/A/B/C" > /var/lib/lxc/red/rootfs/var/www/folder/4/A/B/C/index.html
 
+#generate content for url with special chars
+/bin/cat > /var/www/login.php <<EOF
+<html>
+<body>
+
+Welcome <?php echo $_GET["name"]; ?><br>
+Your email address is: <?php echo $_GET["email"]; ?>
+EOF
+
 
 
