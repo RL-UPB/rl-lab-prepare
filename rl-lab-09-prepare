@@ -115,17 +115,30 @@ END
 
 sleep 5
 
-/sbin/ip a f dev veth-red
-/sbin/ip a a 192.168.1.1/24 dev veth-red
-/sbin/ip l s dev veth-red up
+/bin/cat >> /etc/network/interfaces <<END
 
-/sbin/ip a f dev veth-green
-/sbin/ip a a 192.168.2.1/24 dev veth-green
-/sbin/ip l s dev veth-green up
+auto veth-red
+iface veth-red inet static
+	address 192.168.1.1
+	netmask 255.255.255.0
 
-/sbin/ip a f dev veth-blue
-/sbin/ip a a 192.168.3.1/24 dev veth-blue
-/sbin/ip l s dev veth-blue up
+auto veth-green
+iface veth-green inet static
+	address 192.168.2.1
+	netmask 255.255.255.0
+
+auto veth-blue
+iface veth-blue inet static
+	address 192.168.3.1
+	netmask 255.255.255.0
+END
+
+/sbin/ifdown veth-red > /dev/null 2>&1
+/sbin/ifup veth-red > /dev/null 2>&1
+/sbin/ifdown veth-green > /dev/null 2>&1
+/sbin/ifup veth-green > /dev/null 2>&1
+/sbin/ifdown veth-blue > /dev/null 2>&1
+/sbin/ifup veth-blue > /dev/null 2>&1
 
 /bin/cat > /etc/hosts <<END
 127.0.0.1   localhost
