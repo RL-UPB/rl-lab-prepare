@@ -143,39 +143,43 @@ ff02::2 ip6-allrouter
 END
 
 /sbin/iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
-echo 1 > /proc/sys/net/ipv4/ip_forward
+/sbin/sysctl -w net.ipv4.ip_forward=1 > /dev/null 2>&1
 
-#install APACHE2 on red and enable default-ssl
-/usr/bin/ssh -o StrictHostKeyChecking=no -l root red "apt-get -y install apache2 > /dev/null"
-/usr/bin/ssh -o StrictHostKeyChecking=no -l root red "a2enmod ssl > /dev/null"
-/usr/bin/ssh -o StrictHostKeyChecking=no -l root red "a2ensite default-ssl > /dev/null"
-/usr/bin/ssh -o StrictHostKeyChecking=no -l root red "echo '<h1>Laborator 10 - pe red</h1>' > /var/www/index.html"
+# Install Apache2 on red and enable SSL.
+/usr/bin/ssh -o StrictHostKeyChecking=no -l root red "apt-get -y install apache2 > /dev/null 2>&1" > /dev/null 2>&1
+/usr/bin/ssh -o StrictHostKeyChecking=no -l root red "a2enmod ssl > /dev/null 2>&1"
+/usr/bin/ssh -o StrictHostKeyChecking=no -l root red "a2ensite default-ssl > /dev/null 2>&1"
+/usr/bin/ssh -o StrictHostKeyChecking=no -l root red "service apache2 restart > /dev/null 2>&1"
+echo '<h1>Laborator 10 - pe red</h1>' > /var/lib/lxc/red/rootfs/var/www/index.html
 
-#generate file for red HTTP
-dd if=/dev/zero of=/var/lib/lxc/red/rootfs/var/www/fisier.out bs=1K count=1 &> /dev/null
+# Generate file for red HTTP.
+/bin/dd if=/dev/urandom of=/var/lib/lxc/red/rootfs/var/www/file.dat bs=1K count=1 > /dev/null 2>&1
 
-#folder hierarchy for red
-mkdir -p /var/lib/lxc/red/rootfs/var/www/folder/1/A/B/C
-mkdir -p /var/lib/lxc/red/rootfs/var/www/folder/2/A/B/C
-mkdir -p /var/lib/lxc/red/rootfs/var/www/folder/3/A/B/C
-mkdir -p /var/lib/lxc/red/rootfs/var/www/folder/4/A/B/C
-echo "folder/1" > /var/lib/lxc/red/rootfs/var/www/folder/1/index.html
-echo "folder/2" > /var/lib/lxc/red/rootfs/var/www/folder/2/index.html
-echo "folder/3" > /var/lib/lxc/red/rootfs/var/www/folder/3/index.html
-echo "folder/4" > /var/lib/lxc/red/rootfs/var/www/folder/4/index.html
-echo "folder/1/A/B/C" > /var/lib/lxc/red/rootfs/var/www/folder/1/A/B/C/index.html
-echo "folder/2/A/B/C" > /var/lib/lxc/red/rootfs/var/www/folder/2/A/B/C/index.html
-echo "folder/3/A/B/C" > /var/lib/lxc/red/rootfs/var/www/folder/3/A/B/C/index.html
-echo "folder/4/A/B/C" > /var/lib/lxc/red/rootfs/var/www/folder/4/A/B/C/index.html
+# Create folder hierarchy for red.
+mkdir -p /var/lib/lxc/red/rootfs/var/www/folder/mobile/Google/Nexus4/
+echo "1.512 GHz quad-core Krait" > /var/lib/lxc/red/rootfs/var/www/folder/mobile/Google/Nexus4/info.txt
+mkdir -p /var/lib/lxc/red/rootfs/var/www/folder/mobile/Google/Nexus7/
+echo "ARM Cortex-A9 Nvidia Tegra 3 T30L 1.2 GHz quad-core (1.3 GHz single-core mode) 1MB L2 cache" > /var/lib/lxc/red/rootfs/var/www/folder/mobile/Google/Nexus7/info.txt
+mkdir -p /var/lib/lxc/red/rootfs/var/www/folder/mobile/Apple/iPhone5S/
+echo "1.3 GHz dual-core Apple-designed ARMv8-A 64-bit Apple A7 with M7 motion coprocessor" > /var/lib/lxc/red/rootfs/var/www/folder/mobile/Apple/iPhone5S/info.txt
+mkdir -p /var/lib/lxc/red/rootfs/var/www/folder/mobile/Apple/iPadAir/
+echo "1.4 GHz dual-core Apple Cyclone" > /var/lib/lxc/red/rootfs/var/www/folder/mobile/Apple/iPadAir/info.txt
+mkdir -p /var/lib/lxc/red/rootfs/var/www/folder/embedded/Qualcomm/Scorpion/
+echo "Single or dual-core configuration; 2.1 DMIPS/MHz" > /var/lib/lxc/red/rootfs/var/www/folder/embedded/Qualcomm/Scorpion/info.txt
+mkdir -p /var/lib/lxc/red/rootfs/var/www/folder/embedded/Qualcomm/Krait/
+echo "Dual or quad-core configurations; 3.3 DMIPS/Mhz" > /var/lib/lxc/red/rootfs/var/www/folder/embedded/Qualcomm/Krait/info.txt
+mkdir -p /var/lib/lxc/red/rootfs/var/www/folder/embedded/TI/OMAP3/
+echo "i1.2 GHz ARM Cortex-A8" > /var/lib/lxc/red/rootfs/var/www/folder/embedded/TI/OMAP3/info.txt
+mkdir -p /var/lib/lxc/red/rootfs/var/www/folder/embedded/TI/OMAP4/
+echo "1.3-1.5 GHz dual-core ARM Cortex-A9" > /var/lib/lxc/red/rootfs/var/www/folder/embedded/TI/OMAP4/info.txt
 
-#generate content for url with special chars
-/bin/cat > /var/www/login.php <<EOF
+# Generate content for URL with special chars.
+/bin/cat > /var/www/login.php <<END
 <html>
 <body>
 
-Welcome <?php echo $_GET["name"]; ?><br>
-Your email address is: <?php echo $_GET["email"]; ?>
-EOF
-
-
-
+Welcome <?php echo \$_GET["name"]; ?><br>
+Your email address is: <?php echo \$_GET["email"]; ?>
+</body>
+</html>
+END
