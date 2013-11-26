@@ -154,9 +154,3 @@ ff00::0 ip6-mcastprefix
 ff02::1 ip6-allnodes
 ff02::2 ip6-allrouter
 END
-
-# Create user `corina' on `blue' using password `student'.
-#/usr/bin/ssh -o StrictHostKeyChecking=no -l root blue "/usr/sbin/userdel -r corina"
-#/usr/bin/ssh -o StrictHostKeyChecking=no -l root blue "/usr/sbin/useradd -m -d /home/corina -s /bin/bash -l corina"
-#/usr/bin/ssh -o StrictHostKeyChecking=no -l root blue "echo 'corina:student' | /usr/sbin/chpasswd"
-
