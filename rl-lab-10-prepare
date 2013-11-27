@@ -183,3 +183,26 @@ Your email address is: <?php echo \$_GET["email"]; ?>
 </body>
 </html>
 END
+
+# Create user `ana' on `red' using password `student'.
+/usr/bin/ssh -o StrictHostKeyChecking=no -l root red "/usr/sbin/userdel -r ana > /dev/null 2>&1"
+/usr/bin/ssh -o StrictHostKeyChecking=no -l root red "/usr/sbin/useradd -m -d /home/ana -s /bin/bash -l ana"
+/usr/bin/ssh -o StrictHostKeyChecking=no -l root red "echo 'ana:student' | /usr/sbin/chpasswd"
+
+# Add content for FTP download.
+/bin/dd if=/dev/urandom of=/var/lib/lxc/red/rootfs/srv/ftp/download/file-10M.dat bs=1M count=10 > /dev/null 2>&1
+
+/bin/dd if=/dev/urandom of=/var/lib/lxc/red/rootfs/home/ana/ana-ftp-file-5M.dat bs=1M count=5 > /dev/null 2>&1
+/usr/bin/ssh -o StrictHostKeyChecking=no -l root red "/bin/chown ana:ana ~ana/ana-ftp-file-5M.dat" > /dev/null 2>&1
+
+# Add users for e-mail message.
+/usr/sbin/userdel -r bogdan > /dev/null 2>&1
+/usr/sbin/useradd -m -d /home/bogdan -s /bin/bash -l bogdan
+echo 'bogdan:student' | /usr/sbin/chpasswd
+/usr/sbin/userdel -r corina > /dev/null 2>&1
+/usr/sbin/useradd -m -d /home/corina -s /bin/bash -l corina
+echo 'corina:student' | /usr/sbin/chpasswd
+
+# Add content for FTP upload.
+/bin/dd if=/dev/urandom of=/home/bogdan/bogdan-ftp-data-3M.dat bs=1M count=3 > /dev/null 2>&1
+/bin/chown bogdan:bogdan ~bogdan/bogdan-ftp-data-3M.dat > /dev/null 2>&1
