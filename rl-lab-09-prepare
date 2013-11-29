@@ -115,7 +115,17 @@ END
 
 sleep 5
 
-/bin/cat >> /etc/network/interfaces <<END
+/bin/cat > /etc/network/interfaces <<END
+# This file describes the network interfaces available on your system
+# and how to activate them. For more information, see interfaces(5).
+
+# The loopback network interface
+auto lo
+iface lo inet loopback
+
+# The primary network interface
+auto eth0
+iface eth0 inet dhcp
 
 auto veth-red
 iface veth-red inet static
