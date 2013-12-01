@@ -1,0 +1,8 @@
+#!/bin/bash
+
+/usr/bin/lxc-stop -n red
+/usr/bin/lxc-stop -n green
+/usr/bin/lxc-stop -n blue
+
+sleep 3
+
