@@ -5,4 +5,3 @@
 /usr/bin/lxc-stop -n blue
 
 sleep 3
-
