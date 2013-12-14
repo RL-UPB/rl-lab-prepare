@@ -78,7 +78,7 @@ echo "nameserver 8.8.8.8" > /var/lib/lxc/blue/rootfs/etc/resolv.conf
 /usr/bin/lxc-start -n green -d
 /usr/bin/lxc-start -n blue -d
 
-sleep 3
+sleep 5
 
 /sbin/ip a f dev veth-red
 /sbin/ip a a 192.168.1.1/24 dev veth-red
@@ -98,6 +98,12 @@ sleep 3
 /usr/bin/ssh -o StrictHostKeyChecking=no -l root 192.168.1.2 "/usr/bin/apt-get install -y pppoeconf  > /dev/null 2>&1"
 /usr/bin/ssh -o StrictHostKeyChecking=no -l root 192.168.2.2 "/usr/bin/apt-get install -y pppoeconf  > /dev/null 2>&1"
 /usr/bin/ssh -o StrictHostKeyChecking=no -l root 192.168.3.2 "/usr/bin/apt-get install -y pppoeconf  > /dev/null 2>&1"
+
+/usr/bin/ssh -o StrictHostKeyChecking=no -l root 192.168.1.2 "mknod /dev/ppp c 108 0  > /dev/null 2>&1"
+/usr/bin/ssh -o StrictHostKeyChecking=no -l root 192.168.2.2 "mknod /dev/ppp c 108 0  > /dev/null 2>&1"
+/usr/bin/ssh -o StrictHostKeyChecking=no -l root 192.168.3.2 "mknod /dev/ppp c 108 0  > /dev/null 2>&1"
+
+
 
 
 /usr/bin/lxc-stop -n red
