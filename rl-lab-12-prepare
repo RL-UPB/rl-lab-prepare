@@ -1,2 +1,153 @@
 #!/bin/bash
 
+/usr/bin/lxc-stop -n red
+/usr/bin/lxc-stop -n green
+/usr/bin/lxc-stop -n blue
+
+sleep 3
+
+/bin/echo "#PPP" >> /etc/lxc/auto/red
+/bin/echo "lxc.cgroup.devices.allow = c 108:0 rwm" >> /etc/lxc/auto/red
+
+/bin/echo "#PPP" >> /etc/lxc/auto/green
+/bin/echo "lxc.cgroup.devices.allow = c 108:0 rwm" >> /etc/lxc/auto/green
+
+/bin/echo "#PPP" >> /etc/lxc/auto/blue
+/bin/echo "lxc.cgroup.devices.allow = c 108:0 rwm" >> /etc/lxc/auto/blue
+
+
+/bin/cat > /var/lib/lxc/red/rootfs/etc/network/interfaces <<END
+# This file describes the network interfaces available on your system
+# and how to activate them. For more information, see interfaces(5).
+
+# The loopback network interface
+auto lo
+iface lo inet loopback
+
+auto eth0
+iface eth0 inet static
+	address 192.168.1.2
+	netmask 255.255.255.0
+	broadcast 192.168.1.255
+	network 192.168.1.0
+	gateway 192.168.1.1
+	dns-nameservers 8.8.8.8
+END
+
+/bin/cat > /var/lib/lxc/green/rootfs/etc/network/interfaces <<END
+# This file describes the network interfaces available on your system
+# and how to activate them. For more information, see interfaces(5).
+
+# The loopback network interface
+auto lo
+iface lo inet loopback
+
+auto eth0
+iface eth0 inet static
+	address 192.168.2.2
+	netmask 255.255.255.0
+	broadcast 192.168.2.255
+	network 192.168.2.0
+	gateway 192.168.2.1
+	dns-nameservers 8.8.8.8
+END
+
+/bin/cat > /var/lib/lxc/blue/rootfs/etc/network/interfaces <<END
+# This file describes the network interfaces available on your system
+# and how to activate them. For more information, see interfaces(5).
+
+# The loopback network interface
+auto lo
+iface lo inet loopback
+
+auto eth0
+iface eth0 inet static
+	address 192.168.3.2
+	netmask 255.255.255.0
+	broadcast 192.168.3.255
+	network 192.168.3.0
+	gateway 192.168.3.1
+	dns-nameservers 8.8.8.8
+END
+
+echo "nameserver 8.8.8.8" > /var/lib/lxc/red/rootfs/etc/resolv.conf
+echo "nameserver 8.8.8.8" > /var/lib/lxc/green/rootfs/etc/resolv.conf
+echo "nameserver 8.8.8.8" > /var/lib/lxc/blue/rootfs/etc/resolv.conf
+
+/usr/bin/lxc-start -n red -d
+/usr/bin/lxc-start -n green -d
+/usr/bin/lxc-start -n blue -d
+
+sleep 3
+
+/sbin/ip a f dev veth-red
+/sbin/ip a a 192.168.1.1/24 dev veth-red
+/sbin/ip l s dev veth-red up
+
+/sbin/ip a f dev veth-green
+/sbin/ip a a 192.168.2.1/24 dev veth-green
+/sbin/ip l s dev veth-green up
+
+/sbin/ip a f dev veth-blue
+/sbin/ip a a 192.168.3.1/24 dev veth-blue
+/sbin/ip l s dev veth-blue up
+
+/sbin/sysctl -q -w net.ipv4.ip_forward=1
+/sbin/iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
+
+/usr/bin/ssh -o StrictHostKeyChecking=no -l root 192.168.1.2 "/usr/bin/apt-get install -y pppoeconf  > /dev/null 2>&1"
+/usr/bin/ssh -o StrictHostKeyChecking=no -l root 192.168.2.2 "/usr/bin/apt-get install -y pppoeconf  > /dev/null 2>&1"
+/usr/bin/ssh -o StrictHostKeyChecking=no -l root 192.168.3.2 "/usr/bin/apt-get install -y pppoeconf  > /dev/null 2>&1"
+
+
+/usr/bin/lxc-stop -n red
+/usr/bin/lxc-stop -n green
+/usr/bin/lxc-stop -n blue
+
+sleep 3
+
+/bin/cat > /var/lib/lxc/red/rootfs/etc/network/interfaces <<END
+# This file describes the network interfaces available on your system
+# and how to activate them. For more information, see interfaces(5).
+
+# The loopback network interface
+auto lo
+iface lo inet loopback
+
+auto eth0
+iface eth0 inet manual
+END
+
+/bin/cat > /var/lib/lxc/green/rootfs/etc/network/interfaces <<END
+# This file describes the network interfaces available on your system
+# and how to activate them. For more information, see interfaces(5).
+
+# The loopback network interface
+auto lo
+iface lo inet loopback
+
+auto eth0
+iface eth0 inet manual
+END
+
+/bin/cat > /var/lib/lxc/blue/rootfs/etc/network/interfaces <<END
+# This file describes the network interfaces available on your system
+# and how to activate them. For more information, see interfaces(5).
+
+# The loopback network interface
+auto lo
+iface lo inet loopback
+
+auto eth0
+iface eth0 inet manual
+END
+
+/usr/bin/lxc-start -n red -d
+/usr/bin/lxc-start -n green -d
+/usr/bin/lxc-start -n blue -d
+
+sleep 5
+
+/sbin/sysctl -q -w net.ipv4.ip_forward=0
+/sbin/iptables -t nat -F
+
