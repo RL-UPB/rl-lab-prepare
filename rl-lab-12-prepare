@@ -95,9 +95,9 @@ sleep 5
 /sbin/sysctl -q -w net.ipv4.ip_forward=1
 /sbin/iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
 
-/usr/bin/ssh -o StrictHostKeyChecking=no -l root 192.168.1.2 "/usr/bin/apt-get install -y pppoeconf  > /dev/null 2>&1"
-/usr/bin/ssh -o StrictHostKeyChecking=no -l root 192.168.2.2 "/usr/bin/apt-get install -y pppoeconf  > /dev/null 2>&1"
-/usr/bin/ssh -o StrictHostKeyChecking=no -l root 192.168.3.2 "/usr/bin/apt-get install -y pppoeconf  > /dev/null 2>&1"
+/usr/bin/ssh -o StrictHostKeyChecking=no -l root 192.168.1.2 "/usr/bin/apt-get install -y ppp pppoeconf  > /dev/null 2>&1"
+/usr/bin/ssh -o StrictHostKeyChecking=no -l root 192.168.2.2 "/usr/bin/apt-get install -y ppp pppoeconf  > /dev/null 2>&1"
+/usr/bin/ssh -o StrictHostKeyChecking=no -l root 192.168.3.2 "/usr/bin/apt-get install -y ppp pppoeconf  > /dev/null 2>&1"
 
 /usr/bin/ssh -o StrictHostKeyChecking=no -l root 192.168.1.2 "mknod /dev/ppp c 108 0  > /dev/null 2>&1"
 /usr/bin/ssh -o StrictHostKeyChecking=no -l root 192.168.2.2 "mknod /dev/ppp c 108 0  > /dev/null 2>&1"
