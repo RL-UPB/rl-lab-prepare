@@ -6,15 +6,23 @@
 
 sleep 3
 
-/bin/echo "#PPP" >> /etc/lxc/auto/red
-/bin/echo "lxc.cgroup.devices.allow = c 108:0 rwm" >> /etc/lxc/auto/red
+if /bin/cat /etc/lxc/auto/red | /bin/grep "108:0" > /dev/null
+then
+	/bin/echo "#PPP" >> /etc/lxc/auto/red
+	/bin/echo "lxc.cgroup.devices.allow = c 108:0 rwm" >> /etc/lxc/auto/red
+fi
 
+if /bin/cat /etc/lxc/auto/green | /bin/grep "108:0" > /dev/null
+then
 /bin/echo "#PPP" >> /etc/lxc/auto/green
 /bin/echo "lxc.cgroup.devices.allow = c 108:0 rwm" >> /etc/lxc/auto/green
+fi
 
-/bin/echo "#PPP" >> /etc/lxc/auto/blue
-/bin/echo "lxc.cgroup.devices.allow = c 108:0 rwm" >> /etc/lxc/auto/blue
-
+if /bin/cat /etc/lxc/auto/blue | /bin/grep "108:0" > /dev/null
+then
+	/bin/echo "#PPP" >> /etc/lxc/auto/blue
+	/bin/echo "lxc.cgroup.devices.allow = c 108:0 rwm" >> /etc/lxc/auto/blue
+fi
 
 /bin/cat > /var/lib/lxc/red/rootfs/etc/network/interfaces <<END
 # This file describes the network interfaces available on your system
