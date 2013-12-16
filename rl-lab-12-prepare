@@ -5,20 +5,22 @@
 /usr/bin/lxc-stop -n blue
 
 sleep 3
-
-if /bin/cat /etc/lxc/auto/red | /bin/grep "108:0" > /dev/null
+/bin/cat /etc/lxc/auto/red | /bin/grep "108:0" > /dev/null
+if [ $? -ne 0 ]
 then
 	/bin/echo "#PPP" >> /etc/lxc/auto/red
 	/bin/echo "lxc.cgroup.devices.allow = c 108:0 rwm" >> /etc/lxc/auto/red
 fi
 
-if /bin/cat /etc/lxc/auto/green | /bin/grep "108:0" > /dev/null
+/bin/cat /etc/lxc/auto/green | /bin/grep "108:0" > /dev/null
+if [ $? -ne 0 ]
 then
 /bin/echo "#PPP" >> /etc/lxc/auto/green
 /bin/echo "lxc.cgroup.devices.allow = c 108:0 rwm" >> /etc/lxc/auto/green
 fi
 
-if /bin/cat /etc/lxc/auto/blue | /bin/grep "108:0" > /dev/null
+/bin/cat /etc/lxc/auto/blue | /bin/grep "108:0" > /dev/null
+if [ $? -ne 0 ]
 then
 	/bin/echo "#PPP" >> /etc/lxc/auto/blue
 	/bin/echo "lxc.cgroup.devices.allow = c 108:0 rwm" >> /etc/lxc/auto/blue
