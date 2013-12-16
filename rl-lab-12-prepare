@@ -88,7 +88,7 @@ echo "nameserver 8.8.8.8" > /var/lib/lxc/blue/rootfs/etc/resolv.conf
 /usr/bin/lxc-start -n green -d
 /usr/bin/lxc-start -n blue -d
 
-sleep 5
+sleep 8
 
 /sbin/ip a f dev veth-red
 /sbin/ip a a 192.168.1.1/24 dev veth-red
@@ -102,7 +102,7 @@ sleep 5
 /sbin/ip a a 192.168.3.1/24 dev veth-blue
 /sbin/ip l s dev veth-blue up
 
-sleep 5
+sleep 8
 
 /sbin/sysctl -q -w net.ipv4.ip_forward=1
 /sbin/iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
