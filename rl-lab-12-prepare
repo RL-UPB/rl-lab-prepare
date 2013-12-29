@@ -1,32 +1,91 @@
 #!/bin/bash
 
-/usr/bin/lxc-stop -n red
-/usr/bin/lxc-stop -n green
-/usr/bin/lxc-stop -n blue
+all_stop()
+{
+    for ct in red green blue; do
+        /usr/bin/lxc-stop -n "$ct"
+    done
+    sleep 3
+}
 
-sleep 3
-/bin/cat /etc/lxc/auto/red | /bin/grep "108:0" > /dev/null
-if [ $? -ne 0 ]
-then
-	/bin/echo "#PPP" >> /etc/lxc/auto/red
-	/bin/echo "lxc.cgroup.devices.allow = c 108:0 rwm" >> /etc/lxc/auto/red
-fi
+all_start()
+{
+    for ct in red green blue; do
+        /usr/bin/lxc-start -n "$ct" -d
+    done
+    sleep 5
+}
 
-/bin/cat /etc/lxc/auto/green | /bin/grep "108:0" > /dev/null
-if [ $? -ne 0 ]
-then
-/bin/echo "#PPP" >> /etc/lxc/auto/green
-/bin/echo "lxc.cgroup.devices.allow = c 108:0 rwm" >> /etc/lxc/auto/green
-fi
+all_etc_rclocal_eth0_down()
+{
+    for ct in red green blue; do
+        /bin/cat > /var/lib/lxc/"$ct"/rootfs/etc/rc.local <<EOF
+/sbin/ip link set dev eth0 down
+exit 0
+EOF
+    done
+}
 
-/bin/cat /etc/lxc/auto/blue | /bin/grep "108:0" > /dev/null
-if [ $? -ne 0 ]
-then
-	/bin/echo "#PPP" >> /etc/lxc/auto/blue
-	/bin/echo "lxc.cgroup.devices.allow = c 108:0 rwm" >> /etc/lxc/auto/blue
-fi
+all_etc_rclocal_empty()
+{
+    for ct in red green blue; do
+        echo "exit 0" > /var/lib/lxc/"$ct"/rootfs/etc/rc.local
+    done
+}
 
-/bin/cat > /var/lib/lxc/red/rootfs/etc/network/interfaces <<END
+all_veth_down()
+{
+    for ct in red green blue; do
+        /sbin/ip link set dev veth-"$ct" down
+    done
+}
+
+all_veth_flush()
+{
+    for ct in red green blue; do
+        /sbin/ip address flush dev veth-"$ct"
+    done
+}
+
+all_veth_up()
+{
+    for ct in red green blue; do
+        /sbin/ip link set dev veth-"$ct" up
+    done
+}
+
+all_persistent_empty_eth0()
+{
+    for ct in red green blue; do
+        /bin/cat > /var/lib/lxc/"$ct"/rootfs/etc/network/interfaces <<EOF
+# This file describes the network interfaces available on your system
+# and how to activate them. For more information, see interfaces(5).
+
+# The loopback network interface
+auto lo
+iface lo inet loopback
+EOF
+    done
+}
+
+all_nameserver()
+{
+    for ct in red green blue; do
+        echo "nameserver 8.8.8.8" > /var/lib/lxc/"$ct"/rootfs/etc/resolv.conf
+        echo "nameserver 8.8.8.8" > /var/lib/lxc/"$ct"/rootfs/etc/resolvconf/resolv.conf.d/tail
+    done
+}
+
+ct_persistent_static_eth0()
+{
+    if test $# -lt 3; then
+        echo "Unkown container, IP address and/or netmask"
+        return
+    fi
+    ct="$1"
+    ip="$2"
+    mask="$3"
+    /bin/cat > /var/lib/lxc/"$ct"/rootfs/etc/network/interfaces <<EOF
 # This file describes the network interfaces available on your system
 # and how to activate them. For more information, see interfaces(5).
 
@@ -36,136 +95,307 @@ iface lo inet loopback
 
 auto eth0
 iface eth0 inet static
-	address 192.168.1.2
-	netmask 255.255.255.0
-	broadcast 192.168.1.255
-	network 192.168.1.0
-	gateway 192.168.1.1
-	dns-nameservers 8.8.8.8
+	address $ip
+	netmask $mask
+EOF
+
+    # In case of gateway argument.
+    if test $# -eq 4; then
+        echo -e "\tgateway $4" >> /var/lib/lxc/"$ct"/rootfs/etc/network/interfaces
+    fi
+}
+
+ct_veth()
+{
+    if test $# -lt 3; then
+        echo "Unkown container, IP address and/or netmask"
+        return
+    fi
+    ct="$1"
+    ip="$2"
+    mask="$3"
+
+    /sbin/ip address flush dev veth-"$ct"
+    /sbin/ip address add "$ip"/"$mask" dev veth-"$ct"
+    /sbin/ip link set dev veth-"$ct" up
+}
+
+disable_routing()
+{
+    /sbin/sysctl -q -w net.ipv4.ip_forward=0
+}
+
+enable_routing()
+{
+    /sbin/sysctl -q -w net.ipv4.ip_forward=1
+}
+
+masquerade()
+{
+    /sbin/iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
+}
+
+clear_iptables()
+{
+    /sbin/iptables -t filter -F
+    /sbin/iptables -t nat -F
+}
+
+all_etc_hosts_empty()
+{
+    for ct in red green blue; do
+        /bin/cat > /var/lib/lxc/"$ct"/rootfs/etc/hosts <<END
+127.0.0.1   localhost
+
+# The following lines are desirable for IPv6 capable hosts
+::1     ip6-localhost ip6-loopback
+fe00::0 ip6-localnet
+ff00::0 ip6-mcastprefix
+ff02::1 ip6-allnodes
+ff02::2 ip6-allrouters
 END
+    done
 
-/bin/cat > /var/lib/lxc/green/rootfs/etc/network/interfaces <<END
-# This file describes the network interfaces available on your system
-# and how to activate them. For more information, see interfaces(5).
+    /bin/cat > /etc/hosts <<END
+127.0.0.1   localhost
 
-# The loopback network interface
-auto lo
-iface lo inet loopback
-
-auto eth0
-iface eth0 inet static
-	address 192.168.2.2
-	netmask 255.255.255.0
-	broadcast 192.168.2.255
-	network 192.168.2.0
-	gateway 192.168.2.1
-	dns-nameservers 8.8.8.8
+# The following lines are desirable for IPv6 capable hosts
+::1     ip6-localhost ip6-loopback
+fe00::0 ip6-localnet
+ff00::0 ip6-mcastprefix
+ff02::1 ip6-allnodes
+ff02::2 ip6-allrouters
 END
+}
 
-/bin/cat > /var/lib/lxc/blue/rootfs/etc/network/interfaces <<END
-# This file describes the network interfaces available on your system
-# and how to activate them. For more information, see interfaces(5).
+all_etc_hosts_fill()
+{
+    host="$1"
+    red="$2"
+    green="$3"
+    blue="$4"
 
-# The loopback network interface
-auto lo
-iface lo inet loopback
+    for ct in red green blue; do
+        /bin/cat > /var/lib/lxc/"$ct"/rootfs/etc/hosts <<END
+127.0.0.1   localhost
 
-auto eth0
-iface eth0 inet static
-	address 192.168.3.2
-	netmask 255.255.255.0
-	broadcast 192.168.3.255
-	network 192.168.3.0
-	gateway 192.168.3.1
-	dns-nameservers 8.8.8.8
+$host   host
+$red    red
+$green  green
+$blue   blue
+
+# The following lines are desirable for IPv6 capable hosts
+::1     ip6-localhost ip6-loopback
+fe00::0 ip6-localnet
+ff00::0 ip6-mcastprefix
+ff02::1 ip6-allnodes
+ff02::2 ip6-allrouters
 END
+    done
 
-echo "nameserver 8.8.8.8" > /var/lib/lxc/red/rootfs/etc/resolv.conf
-echo "nameserver 8.8.8.8" > /var/lib/lxc/green/rootfs/etc/resolv.conf
-echo "nameserver 8.8.8.8" > /var/lib/lxc/blue/rootfs/etc/resolv.conf
+    /bin/cat > /etc/hosts <<END
+127.0.0.1   localhost
 
-/usr/bin/lxc-start -n red -d
-/usr/bin/lxc-start -n green -d
-/usr/bin/lxc-start -n blue -d
+$host   host
+$red    red
+$green  green
+$blue   blue
 
-sleep 8
-
-/sbin/ip a f dev veth-red
-/sbin/ip a a 192.168.1.1/24 dev veth-red
-/sbin/ip l s dev veth-red up
-
-/sbin/ip a f dev veth-green
-/sbin/ip a a 192.168.2.1/24 dev veth-green
-/sbin/ip l s dev veth-green up
-
-/sbin/ip a f dev veth-blue
-/sbin/ip a a 192.168.3.1/24 dev veth-blue
-/sbin/ip l s dev veth-blue up
-
-sleep 8
-
-/sbin/sysctl -q -w net.ipv4.ip_forward=1
-/sbin/iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
-
-/usr/bin/ssh -o StrictHostKeyChecking=no -l root 192.168.1.2 "/usr/bin/apt-get install -y ppp pppoeconf  > /dev/null 2>&1"
-/usr/bin/ssh -o StrictHostKeyChecking=no -l root 192.168.2.2 "/usr/bin/apt-get install -y ppp pppoeconf  > /dev/null 2>&1"
-/usr/bin/ssh -o StrictHostKeyChecking=no -l root 192.168.3.2 "/usr/bin/apt-get install -y ppp pppoeconf  > /dev/null 2>&1"
-
-/usr/bin/ssh -o StrictHostKeyChecking=no -l root 192.168.1.2 "mknod /dev/ppp c 108 0  > /dev/null 2>&1"
-/usr/bin/ssh -o StrictHostKeyChecking=no -l root 192.168.2.2 "mknod /dev/ppp c 108 0  > /dev/null 2>&1"
-/usr/bin/ssh -o StrictHostKeyChecking=no -l root 192.168.3.2 "mknod /dev/ppp c 108 0  > /dev/null 2>&1"
-
-
-
-
-/usr/bin/lxc-stop -n red
-/usr/bin/lxc-stop -n green
-/usr/bin/lxc-stop -n blue
-
-sleep 3
-
-/bin/cat > /var/lib/lxc/red/rootfs/etc/network/interfaces <<END
-# This file describes the network interfaces available on your system
-# and how to activate them. For more information, see interfaces(5).
-
-# The loopback network interface
-auto lo
-iface lo inet loopback
-
-auto eth0
-iface eth0 inet manual
+# The following lines are desirable for IPv6 capable hosts
+::1     ip6-localhost ip6-loopback
+fe00::0 ip6-localnet
+ff00::0 ip6-mcastprefix
+ff02::1 ip6-allnodes
+ff02::2 ip6-allrouters
 END
+}
 
-/bin/cat > /var/lib/lxc/green/rootfs/etc/network/interfaces <<END
-# This file describes the network interfaces available on your system
-# and how to activate them. For more information, see interfaces(5).
+ct_etc_hosts_fill()
+{
+    ct="$1"
+    host="$2"
+    red="$3"
+    green="$4"
+    blue="$5"
 
-# The loopback network interface
-auto lo
-iface lo inet loopback
+    /bin/cat > /var/lib/lxc/"$ct"/rootfs/etc/hosts <<END
+127.0.0.1   localhost
 
-auto eth0
-iface eth0 inet manual
+$host   host
+$red    red
+$green  green
+$blue   blue
+
+# The following lines are desirable for IPv6 capable hosts
+::1     ip6-localhost ip6-loopback
+fe00::0 ip6-localnet
+ff00::0 ip6-mcastprefix
+ff02::1 ip6-allnodes
+ff02::2 ip6-allrouters
 END
+}
 
-/bin/cat > /var/lib/lxc/blue/rootfs/etc/network/interfaces <<END
-# This file describes the network interfaces available on your system
-# and how to activate them. For more information, see interfaces(5).
+host_etc_hosts_fill()
+{
+    host="$1"
+    red="$2"
+    green="$3"
+    blue="$3"
 
-# The loopback network interface
-auto lo
-iface lo inet loopback
+    /bin/cat > /etc/hosts <<END
+127.0.0.1   localhost
 
-auto eth0
-iface eth0 inet manual
+$host   host
+$red    red
+$green  green
+$blue   blue
+
+# The following lines are desirable for IPv6 capable hosts
+::1     ip6-localhost ip6-loopback
+fe00::0 ip6-localnet
+ff00::0 ip6-mcastprefix
+ff02::1 ip6-allnodes
+ff02::2 ip6-allrouters
 END
+}
 
-/usr/bin/lxc-start -n red -d
-/usr/bin/lxc-start -n green -d
-/usr/bin/lxc-start -n blue -d
+ct_create_user()
+{
+    ct="$1"
+    user="$2"
+    password="$3"
 
-sleep 5
+    /usr/bin/ssh -o StrictHostKeyChecking=no -l root "$ct" "/usr/sbin/userdel -r $user > /dev/null 2>&1" > /dev/null 2>&1
+    /usr/bin/ssh -o StrictHostKeyChecking=no -l root "$ct" "/usr/sbin/useradd -m -d /home/$user -s /bin/bash -l $user"
+    /usr/bin/ssh -o StrictHostKeyChecking=no -l root "$ct" "echo '$user:$password' | /usr/sbin/chpasswd"
+}
 
-/sbin/sysctl -q -w net.ipv4.ip_forward=0
-/sbin/iptables -t nat -F
+ct_home_fill()
+{
+    ct="$1"
+    user="$2"
 
+    /bin/rm -rf /var/lib/lxc/"$ct"/rootfs/home/"$user"/examen
+    /bin/mkdir -p /var/lib/lxc/"$ct"/rootfs/home/"$user"/examen/test1/test11/
+    /bin/mkdir -p /var/lib/lxc/"$ct"/rootfs/home/"$user"/examen/test2/test11/
+    /bin/mkdir -p /var/lib/lxc/"$ct"/rootfs/home/"$user"/examen/test3/test11/
+    echo "x - 1 = 0" > /var/lib/lxc/"$ct"/rootfs/home/"$user"/examen/test1/simple
+    echo "x^2 - 3x + 2 = 0" > /var/lib/lxc/"$ct"/rootfs/home/"$user"/examen/test1/test11/classic
+    echo "x^3 - 6x^2 + 11x -6 = 0" > /var/lib/lxc/"$ct"/rootfs/home/"$user"/examen/test2/veryclassic
+    /usr/bin/ssh -o StrictHostKeyChecking=no -l root "$ct" "/bin/chown -R $user:$user ~$user/examen"
+}
+
+host_var_www_fill()
+{
+    # Generate files for HTTP server
+    /bin/rm -rf /var/www/examen
+    /bin/mkdir -p /var/www/examen/test5/test51/
+    /bin/mkdir -p /var/www/examen/test6/test51/
+    /bin/mkdir -p /var/www/examen/test7/test51/
+    echo "x - 1 = 0" > /var/www/examen/test5/simple
+    echo "x^2 - 3x + 2 = 0" > /var/www/examen/test5/test51/classic
+    echo "x^3 - 6x^2 + 11x -6 = 0" > /var/www/examen/test6/veryclassic
+}
+
+prepare_task_4()
+{
+    all_stop
+    all_etc_rclocal_eth0_down
+    all_nameserver
+    all_etc_hosts_empty
+    all_start
+    all_veth_down
+    disable_routing
+    clear_iptables
+}
+
+prepare_task_5()
+{
+    all_stop
+    all_etc_rclocal_empty
+    ct_persistent_static_eth0 red 192.168.1.2 255.255.255.0 192.168.1.1
+    ct_persistent_static_eth0 green 192.168.2.2 255.255.255.0 192.168.2.1
+    ct_persistent_static_eth0 blue 192.168.3.2 255.255.255.0 192.168.3.1
+    ct_etc_hosts_fill red 192.168.1.1 192.168.1.2 192.168.2.2 192.168.3.2
+    ct_etc_hosts_fill green 192.168.2.1 192.168.1.2 192.168.2.2 192.168.3.2
+    ct_etc_hosts_fill blue 192.168.3.1 192.168.1.2 192.168.2.2 192.168.3.2
+    all_nameserver
+    all_start
+    ct_veth red 192.168.1.1 255.255.255.0
+    ct_veth green 192.168.2.1 255.255.255.0
+    ct_veth blue 192.168.3.1 255.255.255.0
+    host_etc_hosts_fill 192.168.1.1 192.168.1.2 192.168.2.2 192.168.3.2
+    enable_routing
+    clear_iptables
+    masquerade
+    ct_create_user red ana student
+    ct_create_user green bogdan student
+    ct_home_fill red student
+}
+
+prepare_task_6()
+{
+    all_stop
+    all_etc_rclocal_empty
+    ct_persistent_static_eth0 red 192.168.1.2 255.255.255.0 192.168.1.1
+    ct_persistent_static_eth0 green 192.168.2.2 255.255.255.0 192.168.2.1
+    ct_persistent_static_eth0 blue 192.168.3.2 255.255.255.0 192.168.3.1
+    ct_etc_hosts_fill red 192.168.1.1 192.168.1.2 192.168.2.2 192.168.3.2
+    ct_etc_hosts_fill green 192.168.2.1 192.168.1.2 192.168.2.2 192.168.3.2
+    ct_etc_hosts_fill blue 192.168.3.1 192.168.1.2 192.168.2.2 192.168.3.2
+    all_nameserver
+    all_start
+    ct_veth red 192.168.1.1 255.255.255.0
+    ct_veth green 192.168.2.1 255.255.255.0
+    ct_veth blue 192.168.3.1 255.255.255.0
+    host_etc_hosts_fill 192.168.1.1 192.168.1.2 192.168.2.2 192.168.3.2
+    enable_routing
+    clear_iptables
+    masquerade
+    host_var_www_fill
+}
+
+all_add_pppoe_support()
+{
+    for ct in red green blue; do
+        /bin/grep "108:0" /etc/lxc/auto/"$ct" > /dev/null 2>&1
+        if test $? -ne 0; then
+            /bin/echo "#PPP" >> /etc/lxc/auto/red
+            /bin/echo "lxc.cgroup.devices.allow = c 108:0 rwm" >> /etc/lxc/auto/red
+        fi
+    done
+    sleep 3
+}
+
+all_install_pppoe()
+{
+    for ct in red green blue; do
+        /usr/bin/ssh -o StrictHostKeyChecking=no -l root "$ct" "/usr/bin/apt-get install -y ppp pppoeconf > /dev/null 2>&1"
+        /usr/bin/ssh -o StrictHostKeyChecking=no -l root "$ct" "mknod /dev/ppp c 108 0 > /dev/null 2>&1"
+    done
+}
+
+all_stop
+all_add_pppoe_support
+ct_persistent_static_eth0 red 192.168.1.2 255.255.255.0 192.168.1.1
+ct_persistent_static_eth0 green 192.168.2.2 255.255.255.0 192.168.2.1
+ct_persistent_static_eth0 blue 192.168.3.2 255.255.255.0 192.168.3.1
+all_nameserver
+all_start
+ct_veth red 192.168.1.1 255.255.255.0
+ct_veth green 192.168.2.1 255.255.255.0
+ct_veth blue 192.168.3.1 255.255.255.0
+host_etc_hosts_fill 192.168.1.1 192.168.1.2 192.168.2.2 192.168.3.2
+enable_routing
+clear_iptables
+masquerade
+all_install_pppoe
+all_stop
+all_persistent_empty_eth0
+all_start
+disable_routing
+clear_iptables
+all_etc_hosts_empty
+all_veth_down
+all_veth_flush
+all_veth_up
