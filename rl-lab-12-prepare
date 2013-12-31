@@ -360,8 +360,8 @@ all_add_pppoe_support()
     for ct in red green blue; do
         /bin/grep "108:0" /etc/lxc/auto/"$ct" > /dev/null 2>&1
         if test $? -ne 0; then
-            /bin/echo "#PPP" >> /etc/lxc/auto/red
-            /bin/echo "lxc.cgroup.devices.allow = c 108:0 rwm" >> /etc/lxc/auto/red
+            /bin/echo "#PPP" >> /etc/lxc/auto/"$ct"
+            /bin/echo "lxc.cgroup.devices.allow = c 108:0 rwm" >> /etc/lxc/auto/"$ct"
         fi
     done
     sleep 3
