@@ -145,7 +145,7 @@ all_etc_hosts_empty()
 {
     for ct in red green blue; do
         /bin/cat > /var/lib/lxc/"$ct"/rootfs/etc/hosts <<END
-127.0.0.1   localhost
+127.0.0.1   localhost  $ct
 
 # The following lines are desirable for IPv6 capable hosts
 ::1     ip6-localhost ip6-loopback
@@ -157,7 +157,7 @@ END
     done
 
     /bin/cat > /etc/hosts <<END
-127.0.0.1   localhost
+127.0.0.1   localhost host
 
 # The following lines are desirable for IPv6 capable hosts
 ::1     ip6-localhost ip6-loopback
