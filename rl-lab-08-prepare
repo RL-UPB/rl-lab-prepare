@@ -197,6 +197,13 @@ Host r
 END
 /bin/chown -R student:student /home/student/.ssh
 
+# Clean known hosts
+/bin/rm -fr /root/.ssh/known_hosts
+/bin/rm -fr /home/student/.ssh/known_hosts
+/bin/rm -fr /var/lib/lxc/red/rootfs/root/.ssh/known_hosts
+/bin/rm -fr /var/lib/lxc/green/rootfs/root/.ssh/known_hosts
+/bin/rm -fr /var/lib/lxc/blue/rootfs/root/.ssh/known_hosts
+
 # Add folder `proiecte/' in `student@host':
 /bin/rm -fr /home/ana/proiecte
 /bin/mkdir /home/ana/proiecte
