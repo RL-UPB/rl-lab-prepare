@@ -203,6 +203,10 @@ END
 /bin/rm -fr /var/lib/lxc/red/rootfs/root/.ssh/known_hosts
 /bin/rm -fr /var/lib/lxc/green/rootfs/root/.ssh/known_hosts
 /bin/rm -fr /var/lib/lxc/blue/rootfs/root/.ssh/known_hosts
+/bin/rm -fr /var/lib/lxc/red/rootfs/home/student/.ssh/known_hosts
+/bin/rm -fr /var/lib/lxc/green/rootfs/home/student/.ssh/known_hosts
+/bin/rm -fr /var/lib/lxc/blue/rootfs/home/student/.ssh/known_hosts
+
 
 # Add folder `proiecte/' in `student@host':
 /bin/rm -fr /home/ana/proiecte
