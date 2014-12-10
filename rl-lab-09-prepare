@@ -21,7 +21,7 @@ iface eth0 inet static
 	broadcast 192.168.1.255
 	network 192.168.1.0
 	gateway 192.168.1.1
-	dns-nameservers 8.8.8.8
+	dns-nameservers 141.85.241.15
 END
 
 /bin/cat > /var/lib/lxc/green/rootfs/etc/network/interfaces <<END
@@ -39,7 +39,7 @@ iface eth0 inet static
 	broadcast 192.168.2.255
 	network 192.168.2.0
 	gateway 192.168.2.1
-	dns-nameservers 8.8.8.8
+	dns-nameservers 141.85.241.15
 END
 
 /bin/cat > /var/lib/lxc/blue/rootfs/etc/network/interfaces <<END
@@ -57,12 +57,12 @@ iface eth0 inet static
 	broadcast 192.168.3.255
 	network 192.168.3.0
 	gateway 192.168.3.1
-	dns-nameservers 8.8.8.8
+	dns-nameservers 141.85.241.15
 END
 
-echo "nameserver 8.8.8.8" > /var/lib/lxc/red/rootfs/etc/resolv.conf
-echo "nameserver 8.8.8.8" > /var/lib/lxc/green/rootfs/etc/resolv.conf
-echo "nameserver 8.8.8.8" > /var/lib/lxc/blue/rootfs/etc/resolv.conf
+echo "nameserver 141.85.241.15" > /var/lib/lxc/red/rootfs/etc/resolv.conf
+echo "nameserver 141.85.241.15" > /var/lib/lxc/green/rootfs/etc/resolv.conf
+echo "nameserver 141.85.241.15" > /var/lib/lxc/blue/rootfs/etc/resolv.conf
 
 /bin/cat > /var/lib/lxc/red/rootfs/etc/hosts <<END
 127.0.0.1   localhost
