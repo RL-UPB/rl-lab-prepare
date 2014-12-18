@@ -146,6 +146,7 @@ END
 /sbin/sysctl -w net.ipv4.ip_forward=1 > /dev/null 2>&1
 
 # Install Apache2 on red and enable SSL.
+/usr/bin/ssh -o StrictHostKeyChecking=no -l root red "apt-get update > /dev/null 2>&1" > /dev/null 2>&1
 /usr/bin/ssh -o StrictHostKeyChecking=no -l root red "apt-get -y install apache2 > /dev/null 2>&1" > /dev/null 2>&1
 /usr/bin/ssh -o StrictHostKeyChecking=no -l root red "a2enmod ssl > /dev/null 2>&1"
 /usr/bin/ssh -o StrictHostKeyChecking=no -l root red "a2ensite default-ssl > /dev/null 2>&1"
